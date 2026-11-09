@@ -12,7 +12,7 @@ export function requireEnv<K extends string>(...keys: K[]): Record<K, string> {
   return Object.fromEntries(keys.map((k) => [k, process.env[k]!])) as Record<K, string>;
 }
 
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
 
 /** Turns any thrown error into a JSON response the client can show in the notch. */
 export function errorResponse(err: unknown) {

@@ -30,7 +30,7 @@ The app only talks to Supabase from the server, using the service-role key. Row 
 
 ### 2. Gemini
 
-Create an API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). The default model is `gemini-3.6-flash`. To use a different one, set `GEMINI_MODEL`.
+Create an API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). The default model is `gemini-3.1-flash-lite`. To use a different one, set `GEMINI_MODEL`.
 
 ### 3. Run locally
 
@@ -50,7 +50,7 @@ Then open http://localhost:3000.
    | Variable | Value |
    | --- | --- |
    | `GEMINI_API_KEY` | your Gemini key |
-   | `GEMINI_MODEL` | optional, default `gemini-3.6-flash` |
+   | `GEMINI_MODEL` | optional, default `gemini-3.1-flash-lite` |
    | `SUPABASE_URL` | Supabase project URL |
    | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role key |
    | `APP_PASSWORD` | the passcode that unlocks your diary |
