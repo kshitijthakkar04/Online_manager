@@ -1,7 +1,6 @@
 import { connection } from "next/server";
 import { LibraryView } from "@/components/library-view";
-import { SetupNotice } from "@/components/setup-notice";
-import { ConfigError } from "@/lib/env";
+import { LoadError } from "@/components/setup-notice";
 import { listNotes } from "@/lib/supabase";
 
 export default async function LibraryPage() {
@@ -9,7 +8,6 @@ export default async function LibraryPage() {
   try {
     return <LibraryView notes={await listNotes()} />;
   } catch (err) {
-    if (err instanceof ConfigError) return <SetupNotice missing={err.missing} />;
-    throw err;
+    return <LoadError error={err} />;
   }
 }
