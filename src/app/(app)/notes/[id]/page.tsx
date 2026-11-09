@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { NoteView } from "@/components/note-view";
-import { SetupNotice } from "@/components/setup-notice";
-import { ConfigError } from "@/lib/env";
+import { LoadError } from "@/components/setup-notice";
 import { getNote } from "@/lib/supabase";
+import type { Note } from "@/lib/types";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
@@ -11,12 +11,12 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
   await connection();
   const { id } = await params;
   if (!UUID.test(id)) notFound();
+  let note: Note | null;
   try {
-    const note = await getNote(id);
-    if (!note) notFound();
-    return <NoteView note={note} />;
+    note = await getNote(id);
   } catch (err) {
-    if (err instanceof ConfigError) return <SetupNotice missing={err.missing} />;
-    throw err;
+    return <LoadError error={err} />;
   }
+  if (!note) notFound();
+  return <NoteView note={note} />;
 }

@@ -12,15 +12,24 @@ const NOTE_COLUMNS =
 function db() {
   if (!client) {
     const env = requireEnv("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY");
-    client = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    // Accept the dashboard's "Data API" URL too: the client appends /rest/v1 itself.
+    const url = env.SUPABASE_URL.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+    client = createClient(url, env.SUPABASE_SERVICE_ROLE_KEY.trim(), {
       auth: { persistSession: false, autoRefreshToken: false },
     });
   }
   return client;
 }
 
-function check<T>({ data, error }: { data: T; error: { message: string } | null }): T {
-  if (error) throw new Error(`Supabase: ${error.message}`);
+type DbError = { message: string; code?: string; hint?: string | null };
+
+function check<T>({ data, error, status }: { data: T; error: DbError | null; status?: number }): T {
+  if (error) {
+    const detail = [error.message, error.code && `code ${error.code}`, error.hint, status && `HTTP ${status}`]
+      .filter(Boolean)
+      .join(" · ");
+    throw new Error(`Supabase: ${detail || "request failed"}`);
+  }
   return data;
 }
 
