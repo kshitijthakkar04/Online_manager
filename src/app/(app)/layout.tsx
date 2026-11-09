@@ -7,7 +7,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <NotchProvider>
       <Notch />
       <Sidebar locked={authEnabled()} />
-      <main className="min-h-dvh px-4 pt-16 pb-28 sm:px-6 md:pb-12 md:pl-[100px] lg:pr-8">{children}</main>
+      <main className="min-h-dvh px-4 pt-[72px] pb-32 sm:px-6 md:pt-20 md:pr-8 md:pb-14 md:pl-[116px] xl:pr-12">{children}</main>
     </NotchProvider>
   );
 }

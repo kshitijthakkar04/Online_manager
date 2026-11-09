@@ -58,8 +58,11 @@ export function ScoreRing({ value, size = 76 }: { value: number; size?: number }
           style={{ transition: "stroke-dashoffset 900ms cubic-bezier(.2,.8,.2,1)" }}
         />
       </svg>
-      <div className="absolute inset-0 grid place-items-center">
-        <span className={`text-xl font-semibold tabular-nums ${tone.text}`}>{value.toFixed(1)}</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+        <span className={`font-semibold tracking-tight tabular-nums ${tone.text}`} style={{ fontSize: size * 0.26 }}>
+          {value.toFixed(1)}
+        </span>
+        <span className="mt-1 text-[10px] font-medium text-ink-500">/ 10</span>
       </div>
     </div>
   );
@@ -148,10 +151,11 @@ export function Markdown({
 export function EmptyState({ icon, title, children }: { icon: React.ReactNode; title: string; children?: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-      <div className="mb-4 grid size-12 place-items-center rounded-2xl border border-white/[0.06] bg-white/[0.03] text-ink-400">
+      <div className="relative mb-5 grid size-14 place-items-center rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.06] to-white/[0.01] text-lamp shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]">
+        <span className="absolute inset-0 -z-10 rounded-2xl bg-lamp/20 blur-xl" />
         {icon}
       </div>
-      <p className="font-medium text-ink-100">{title}</p>
+      <p className="text-[15px] font-semibold text-ink-100">{title}</p>
       {children && <div className="mt-1.5 max-w-sm text-sm leading-relaxed text-ink-400">{children}</div>}
     </div>
   );

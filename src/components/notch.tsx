@@ -10,10 +10,13 @@ type Tone = "busy" | "success" | "error";
 type Activity = { tone: Tone; text: string; id: number };
 
 type NotchApi = {
-  busy: (text: string) => void;
+  /** Shows a spinner until replaced; returns an id for `release`. */
+  busy: (text: string) => number;
   success: (text: string) => void;
   error: (text: string) => void;
   clear: () => void;
+  /** Clears the notch only if `id` is still what it's showing. */
+  release: (id: number) => void;
   setSubtitle: (text: string | null) => void;
 };
 
@@ -43,6 +46,7 @@ export function NotchProvider({ children }: { children: React.ReactNode }) {
     setActivity({ tone, text, id });
     const linger = LINGER[tone];
     if (linger) timer.current = setTimeout(() => setActivity((a) => (a?.id === id ? null : a)), linger);
+    return id;
   }, []);
 
   const api = useMemo<NotchApi>(
@@ -54,6 +58,7 @@ export function NotchProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(timer.current);
         setActivity(null);
       },
+      release: (id) => setActivity((a) => (a?.id === id ? null : a)),
       setSubtitle,
     }),
     [show],
@@ -112,6 +117,7 @@ export function Notch() {
         role="status"
         aria-live="polite"
         className="pointer-events-auto relative h-[38px] rounded-b-[18px] bg-black shadow-[0_10px_40px_-10px_rgb(0_0_0/0.9)]"
+        initial={false}
         animate={{ width: Math.max(width, 120), height: activity ? 42 : 38 }}
         transition={{ type: "spring", stiffness: 420, damping: 34 }}
       >
