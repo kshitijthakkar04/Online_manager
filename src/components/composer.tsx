@@ -56,6 +56,7 @@ export function Composer() {
   const [editingFinal, setEditingFinal] = useState(false);
   const [addingSource, setAddingSource] = useState(false);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
 
   const update = useCallback((patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch })), []);
 
@@ -98,6 +99,14 @@ export function Composer() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
+
+  // Put the cursor in the title on a blank entry (not on touch screens, where it pops the keyboard).
+  useEffect(() => {
+    if (loaded && !editId && !draft.title && !draft.understanding && matchMedia("(pointer: fine)").matches) {
+      titleRef.current?.focus();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
 
   // Autosave new entries locally so nothing is lost on refresh.
   useEffect(() => {
@@ -274,29 +283,38 @@ export function Composer() {
           </div>
         </div>
 
-        <AutoTextarea
-          value={draft.title}
-          onChange={(e) => update({ title: e.target.value.replace(/\n/g, " ") })}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              bodyRef.current?.focus();
-            }
-          }}
-          minRows={1}
-          placeholder="What did you learn today?"
-          className="w-full bg-transparent font-serif text-4xl leading-tight tracking-tight text-ink-100 outline-none placeholder:text-ink-600 sm:text-[2.75rem]"
-        />
-
-        <div className="mt-6">
-          <AutoTextarea
-            ref={bodyRef}
-            value={draft.understanding}
-            onChange={(e) => update({ understanding: e.target.value })}
-            minRows={10}
-            placeholder={"Explain it in your own words, like you'd tell a friend.\n\nNo copy-pasting — what do you actually understand? Where does it get fuzzy?"}
-            className="w-full bg-transparent font-serif text-[1.18rem] leading-[1.8] text-ink-200 outline-none placeholder:text-ink-600"
-          />
+        {/* The page: clearly bounded so it reads as somewhere to write. */}
+        <div className="card overflow-hidden transition focus-within:border-lamp/40 focus-within:ring-4 focus-within:ring-lamp/10">
+          <label className="block border-b border-white/[0.06] px-5 pt-4 pb-3 sm:px-7">
+            <span className="eyebrow flex items-center gap-1.5">
+              <PencilLine className="size-3.5 text-lamp" /> Topic
+            </span>
+            <AutoTextarea
+              ref={titleRef}
+              value={draft.title}
+              onChange={(e) => update({ title: e.target.value.replace(/\n/g, " ") })}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  bodyRef.current?.focus();
+                }
+              }}
+              minRows={1}
+              placeholder="What did you learn today?"
+              className="mt-2 w-full bg-transparent font-serif text-3xl leading-tight tracking-tight text-ink-100 caret-lamp outline-none placeholder:text-ink-400 sm:text-4xl"
+            />
+          </label>
+          <label className="block cursor-text px-5 pt-4 pb-6 sm:px-7">
+            <span className="eyebrow">What I understood — in my own words</span>
+            <AutoTextarea
+              ref={bodyRef}
+              value={draft.understanding}
+              onChange={(e) => update({ understanding: e.target.value })}
+              minRows={9}
+              placeholder={"Explain it like you'd tell a friend.\n\nNo copy-pasting — what do you actually understand? Where does it get fuzzy?"}
+              className="mt-2 w-full bg-transparent font-serif text-[1.15rem] leading-[1.8] text-ink-100 caret-lamp outline-none placeholder:text-ink-400"
+            />
+          </label>
         </div>
 
         {/* Sources */}
@@ -359,16 +377,20 @@ export function Composer() {
             </button>
             <button onClick={runCompose} disabled={!draft.title.trim() || !draft.understanding.trim() || !!busy} className="btn-soft flex-1 sm:flex-none">
               <Feather className="size-4 text-lamp" />
-              {draft.finalNote ? "Rewrite" : <>Write<span className="hidden sm:inline">in my voice</span></>}
+              {draft.finalNote ? "Rewrite" : <span>Write<span className="hidden sm:inline"> in my voice</span></span>}
             </button>
             <button onClick={save} disabled={!draft.title.trim() || !draft.understanding.trim() || !!busy} className="btn-primary flex-1 sm:flex-none" title="⌘S">
               <Check className="size-4" strokeWidth={2.5} />
               Save
             </button>
+            {words < 15 && (
+              <p className="w-full pb-1 text-center text-xs text-ink-400">
+                {!draft.title.trim() || words === 0
+                  ? "Type a topic and what you understood above — Review unlocks at 15 words."
+                  : `${15 - words} more word${15 - words === 1 ? "" : "s"} to unlock Review.`}
+              </p>
+            )}
           </div>
-          {words > 0 && words < 15 && (
-            <p className="mt-2 text-center text-xs text-ink-500">Write at least 15 words to get a review.</p>
-          )}
         </div>
       </section>
 
