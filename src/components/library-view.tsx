@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Flame, Gauge, PenLine, Search } from "lucide-react";
 import { EmptyState, ScoreBadge, formatDate, todayISO } from "./ui";
 import type { NoteSummary } from "@/lib/types";
@@ -10,14 +10,17 @@ import type { NoteSummary } from "@/lib/types";
 const WEEKS = 20;
 
 function shiftDays(iso: string, days: number) {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 export function LibraryView({ notes }: { notes: NoteSummary[] }) {
   const [query, setQuery] = useState("");
   const [tag, setTag] = useState<string | null>(null);
+  // "Today" is the viewer's local date, which the server can't know; fill it in after hydration.
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => setToday(todayISO()), []);
 
   const perDay = useMemo(() => {
     const m = new Map<string, number>();
@@ -26,7 +29,7 @@ export function LibraryView({ notes }: { notes: NoteSummary[] }) {
   }, [notes]);
 
   const stats = useMemo(() => {
-    const today = todayISO();
+    if (!today) return { streak: null, avg: null };
     // A streak survives until the end of today, so start from yesterday if today is still blank.
     let day = perDay.has(today) ? today : shiftDays(today, -1);
     let streak = 0;
@@ -37,7 +40,7 @@ export function LibraryView({ notes }: { notes: NoteSummary[] }) {
     const scored = notes.filter((n) => n.overall_score !== null);
     const avg = scored.length ? scored.reduce((s, n) => s + (n.overall_score ?? 0), 0) / scored.length : null;
     return { streak, avg };
-  }, [notes, perDay]);
+  }, [notes, perDay, today]);
 
   const tags = useMemo(() => {
     const count = new Map<string, number>();
@@ -87,12 +90,12 @@ export function LibraryView({ notes }: { notes: NoteSummary[] }) {
         </div>
         <div className="flex gap-2">
           <Stat icon={<BookOpen className="size-4" />} label="Notes" value={notes.length} />
-          <Stat icon={<Flame className="size-4" />} label="Day streak" value={stats.streak} />
+          <Stat icon={<Flame className="size-4" />} label="Day streak" value={stats.streak ?? "–"} />
           {stats.avg !== null && <Stat icon={<Gauge className="size-4" />} label="Avg score" value={stats.avg.toFixed(1)} />}
         </div>
       </header>
 
-      <Heatmap perDay={perDay} />
+      {today ? <Heatmap perDay={perDay} today={today} /> : <div className="card h-[150px]" />}
 
       <div className="sticky top-12 z-20 -mx-2 mt-8 mb-6 bg-ink-950/80 px-2 py-3 backdrop-blur-xl">
         <div className="relative">
@@ -182,9 +185,8 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-function Heatmap({ perDay }: { perDay: Map<string, number> }) {
-  const today = todayISO();
-  const dow = new Date(`${today}T00:00:00`).getDay();
+function Heatmap({ perDay, today }: { perDay: Map<string, number>; today: string }) {
+  const dow = new Date(`${today}T00:00:00Z`).getUTCDay();
   const start = shiftDays(today, -(WEEKS - 1) * 7 - dow);
   const weeks = Array.from({ length: WEEKS }, (_, w) =>
     Array.from({ length: 7 }, (_, d) => {

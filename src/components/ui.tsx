@@ -23,8 +23,12 @@ export function todayISO() {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 }
 
+/**
+ * Formats a YYYY-MM-DD date. Locale and time zone are pinned so the server render
+ * (Vercel, UTC, en-US) matches the browser's — otherwise React hydration fails.
+ */
 export function formatDate(iso: string, opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" }) {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, opts);
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", { ...opts, timeZone: "UTC" });
 }
 
 export function scoreTone(score: number) {

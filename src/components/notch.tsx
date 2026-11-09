@@ -97,7 +97,13 @@ export function Notch() {
     return () => ro.disconnect();
   }, []);
 
-  const key = activity ? `a${activity.id}` : `p${pathname}${subtitle ?? ""}`;
+  // Page subtitles can be dates, which depend on the viewer's locale and time zone.
+  // Pages are prerendered at build time, so only compute them in the browser.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const sub = subtitle ?? (mounted ? page.subtitle?.() : undefined);
+
+  const key = activity ? `a${activity.id}` : `p${pathname}${sub ?? ""}`;
   const Icon = page.icon;
 
   return (
@@ -133,12 +139,10 @@ export function Notch() {
                   <>
                     <Icon className="size-4 text-lamp" />
                     <span className="text-ink-100">{page.label}</span>
-                    {(subtitle ?? page.subtitle?.()) && (
+                    {sub && (
                       <>
                         <span className="text-ink-600">·</span>
-                        <span className="max-w-[38vw] truncate text-ink-400 sm:max-w-[260px]">
-                          {subtitle ?? page.subtitle?.()}
-                        </span>
+                        <span className="max-w-[38vw] truncate text-ink-400 sm:max-w-[260px]">{sub}</span>
                       </>
                     )}
                   </>
