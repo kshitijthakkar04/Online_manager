@@ -1,0 +1,22 @@
+"use client";
+
+import { useId } from "react";
+
+/** The app mark: an open book under a lamp flame. */
+export function LogoMark({ className = "size-9" }: { className?: string }) {
+  const id = useId();
+  return (
+    <svg viewBox="0 0 32 32" className={className} aria-hidden>
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#fbd89f" />
+          <stop offset="1" stopColor="#e08a3c" />
+        </linearGradient>
+      </defs>
+      <rect width="32" height="32" rx="9" fill={`url(#${id})`} />
+      <path d="M6.5 12.2c3.2-.9 6.3-.6 9.5 1.6v10.4c-3.2-2.2-6.3-2.5-9.5-1.6z" fill="#0b0b0d" />
+      <path d="M25.5 12.2c-3.2-.9-6.3-.6-9.5 1.6v10.4c3.2-2.2 6.3-2.5 9.5-1.6z" fill="#0b0b0d" opacity=".78" />
+      <path d="M16 4.8c1 1.7 2.3 2.5 2.3 4.2 0 1.3-1 2.3-2.3 2.3s-2.3-1-2.3-2.3c0-1.7 1.3-2.5 2.3-4.2z" fill="#0b0b0d" />
+    </svg>
+  );
+}

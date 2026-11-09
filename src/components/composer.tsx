@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  CalendarDays,
   Check,
   Feather,
   FileText,
@@ -16,7 +17,7 @@ import {
 } from "lucide-react";
 import { useNotch } from "./notch";
 import { ReviewPanel } from "./review-panel";
-import { AutoTextarea, Markdown, api, errorText, formatDate, todayISO } from "./ui";
+import { AutoTextarea, EmptyState, Markdown, api, errorText, formatDate, todayISO } from "./ui";
 import type { Citation, Note, Review } from "@/lib/types";
 
 type Draft = {
@@ -244,31 +245,25 @@ export function Composer() {
     { label: "Your voice", done: Boolean(draft.finalNote) },
     { label: "Save", done: false },
   ];
+  const current = steps.findIndex((s) => !s.done);
+  const canWrite = Boolean(draft.title.trim() && draft.understanding.trim()) && !busy;
+  const minutes = Math.max(1, Math.round(words / 200));
 
   return (
-    <div className="mx-auto grid max-w-[1320px] gap-8 xl:grid-cols-[minmax(0,1fr)_430px] xl:gap-10">
+    <div className="mx-auto grid max-w-[1320px] gap-8 xl:grid-cols-[minmax(0,1fr)_420px] xl:gap-10">
       {/* ---------- Editor ---------- */}
-      <section className={`min-w-0 transition-opacity ${loaded ? "opacity-100" : "opacity-0"}`}>
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {steps.map((s, i) => (
-              <div key={s.label} className="flex items-center gap-1.5">
-                <span
-                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap transition ${
-                    s.done ? "bg-good/10 text-good" : "bg-white/[0.03] text-ink-400"
-                  }`}
-                >
-                  {s.done ? <Check className="size-3" strokeWidth={3} /> : <span className="tabular-nums">{i + 1}</span>}
-                  {s.label}
-                </span>
-                {i < steps.length - 1 && <span className="hidden h-px w-3 bg-ink-700 sm:block" />}
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            {draft.id && <span className="chip">Editing saved note</span>}
-            <label className="chip relative cursor-pointer hover:text-ink-100">
-              {formatDate(draft.entry_date, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+      <section className="min-w-0">
+        <header className="mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-5">
+          <div>
+            <p className="eyebrow flex items-center gap-2">
+              {draft.id ? "Editing entry" : "Today's entry"}
+              {draft.id && <span className="size-1 rounded-full bg-lamp" />}
+            </p>
+            <label className="group relative mt-2 flex cursor-pointer items-center gap-2">
+              <h1 className="font-serif text-[2.1rem] leading-[1.1] tracking-[-0.015em] text-ink-100 sm:text-[2.6rem]">
+                {formatDate(draft.entry_date, { weekday: "long", month: "long", day: "numeric" })}
+              </h1>
+              <CalendarDays className="size-4 text-ink-500 transition group-hover:text-lamp" />
               <input
                 type="date"
                 value={draft.entry_date}
@@ -277,15 +272,40 @@ export function Composer() {
                 aria-label="Entry date"
               />
             </label>
-            <button onClick={startOver} className="btn-ghost h-7 px-2 text-xs" title="Start a new entry">
+          </div>
+          <div className="flex items-center gap-3">
+            <ol className="flex items-center" aria-label="Progress">
+              {steps.map((s, i) => (
+                <li key={s.label} className="flex items-center">
+                  <div className="flex flex-col items-center gap-1.5" aria-current={i === current ? "step" : undefined}>
+                    <span
+                      className={`grid size-6 place-items-center rounded-full text-[11px] font-semibold transition ${
+                        s.done
+                          ? "bg-lamp text-ink-950 shadow-[0_0_12px_rgb(244_183_99/0.5)]"
+                          : i === current
+                            ? "text-lamp ring-1 ring-lamp/60"
+                            : "text-ink-500 ring-1 ring-white/[0.1]"
+                      }`}
+                    >
+                      {s.done ? <Check className="size-3.5" strokeWidth={3} /> : i + 1}
+                    </span>
+                    <span className={`hidden text-[10px] font-medium sm:block ${i === current ? "text-ink-100" : "text-ink-500"}`}>{s.label}</span>
+                  </div>
+                  {i < steps.length - 1 && (
+                    <span className={`mx-1.5 mb-0 h-px w-5 sm:mb-5 sm:w-7 ${steps[i].done ? "bg-lamp/60" : "bg-white/[0.1]"}`} />
+                  )}
+                </li>
+              ))}
+            </ol>
+            <button onClick={startOver} className="btn-ghost h-8 px-2.5 text-xs sm:mb-5" title="Start a new entry">
               <RotateCcw className="size-3.5" /> New
             </button>
           </div>
-        </div>
+        </header>
 
         {/* The page: clearly bounded so it reads as somewhere to write. */}
-        <div className="card overflow-hidden transition focus-within:border-lamp/40 focus-within:ring-4 focus-within:ring-lamp/10">
-          <label className="block border-b border-white/[0.06] px-5 pt-4 pb-3 sm:px-7">
+        <div className="card relative overflow-hidden transition duration-200 focus-within:border-lamp/35 focus-within:shadow-[0_0_0_4px_rgb(244_183_99/0.08),0_20px_50px_-20px_rgb(0_0_0/0.8)]">
+          <label className="block px-5 pt-5 pb-4 sm:px-8 sm:pt-6">
             <span className="eyebrow flex items-center gap-1.5">
               <PencilLine className="size-3.5 text-lamp" /> Topic
             </span>
@@ -301,10 +321,11 @@ export function Composer() {
               }}
               minRows={1}
               placeholder="What did you learn today?"
-              className="mt-2 w-full bg-transparent font-serif text-3xl leading-tight tracking-tight text-ink-100 caret-lamp outline-none placeholder:text-ink-400 sm:text-4xl"
+              className="mt-2.5 w-full bg-transparent font-serif text-[1.9rem] leading-tight tracking-[-0.01em] text-ink-100 caret-lamp outline-none placeholder:text-ink-500 sm:text-[2.3rem]"
             />
           </label>
-          <label className="block cursor-text px-5 pt-4 pb-6 sm:px-7">
+          <div className="mx-5 h-px bg-gradient-to-r from-white/[0.08] via-white/[0.05] to-transparent sm:mx-8" />
+          <label className="block cursor-text px-5 pt-5 pb-7 sm:px-8">
             <span className="eyebrow">What I understood — in my own words</span>
             <AutoTextarea
               ref={bodyRef}
@@ -312,76 +333,81 @@ export function Composer() {
               onChange={(e) => update({ understanding: e.target.value })}
               minRows={9}
               placeholder={"Explain it like you'd tell a friend.\n\nNo copy-pasting — what do you actually understand? Where does it get fuzzy?"}
-              className="mt-2 w-full bg-transparent font-serif text-[1.15rem] leading-[1.8] text-ink-100 caret-lamp outline-none placeholder:text-ink-400"
+              className="mt-2.5 w-full bg-transparent font-serif text-[1.15rem] leading-[1.85] text-ink-100 caret-lamp outline-none placeholder:text-ink-500"
             />
           </label>
-        </div>
 
-        {/* Sources */}
-        <div className="mt-8 border-t border-white/[0.06] pt-5">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="eyebrow">Sources {draft.citations.length > 0 && `· ${draft.citations.length}`}</span>
-            {!addingSource && (
-              <button onClick={() => setAddingSource(true)} className="btn-ghost h-7 px-2 text-xs">
-                <Plus className="size-3.5" /> Add source
-              </button>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {draft.citations.map((c, i) => (
-              <span key={i} className="chip max-w-full py-1 pr-1">
-                <span className="font-semibold text-lamp">{i + 1}</span>
-                {c.url ? (
-                  <a href={c.url} target="_blank" rel="noreferrer" className="truncate hover:text-ink-100">
-                    {c.label || c.url}
-                  </a>
-                ) : (
-                  <span className="truncate">{c.label}</span>
-                )}
-                <button
-                  onClick={() => update({ citations: draft.citations.filter((_, j) => j !== i) })}
-                  className="grid size-5 place-items-center rounded-full hover:bg-white/10"
-                  aria-label="Remove source"
-                >
-                  <X className="size-3" />
-                </button>
+          {/* Sources */}
+          <div className="border-t border-white/[0.06] bg-white/[0.015] px-5 py-4 sm:px-8">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="eyebrow mr-1 flex items-center gap-1.5">
+                <Link2 className="size-3.5" /> Sources
               </span>
-            ))}
-            {!draft.citations.length && !addingSource && (
-              <p className="text-sm text-ink-500">Optional — books, articles, videos, courses you learned from.</p>
-            )}
+              {draft.citations.map((c, i) => (
+                <span key={i} className="chip max-w-full py-1 pr-1">
+                  <span className="font-semibold text-lamp">{i + 1}</span>
+                  {c.url ? (
+                    <a href={c.url} target="_blank" rel="noreferrer" className="max-w-[220px] truncate hover:text-ink-100">
+                      {c.label || c.url}
+                    </a>
+                  ) : (
+                    <span className="max-w-[220px] truncate">{c.label}</span>
+                  )}
+                  <button
+                    onClick={() => update({ citations: draft.citations.filter((_, j) => j !== i) })}
+                    className="grid size-5 place-items-center rounded-full hover:bg-white/10"
+                    aria-label="Remove source"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ))}
+              {!addingSource && (
+                <button onClick={() => setAddingSource(true)} className="chip border-dashed py-1 transition hover:border-lamp/40 hover:text-lamp">
+                  <Plus className="size-3" /> {draft.citations.length ? "Add" : "Add a book, article or video"}
+                </button>
+              )}
+            </div>
+            <AnimatePresence>
+              {addingSource && (
+                <SourceForm
+                  onAdd={(c) => {
+                    update({ citations: [...draft.citations, c] });
+                    setAddingSource(false);
+                  }}
+                  onCancel={() => setAddingSource(false)}
+                />
+              )}
+            </AnimatePresence>
           </div>
-          <AnimatePresence>
-            {addingSource && (
-              <SourceForm
-                onAdd={(c) => {
-                  update({ citations: [...draft.citations, c] });
-                  setAddingSource(false);
-                }}
-                onCancel={() => setAddingSource(false)}
-              />
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Action bar */}
-        <div className="sticky bottom-24 z-30 mt-10 md:bottom-4">
-          <div className="card flex flex-wrap items-center gap-2 bg-ink-900/95 p-2 shadow-2xl shadow-black/50 sm:pl-4">
-            <span className="mr-auto hidden text-xs text-ink-400 tabular-nums sm:inline">
-              {words} words
-              {reviewStale && <span className="ml-2 text-warn">· edited since review</span>}
+        <div className="sticky bottom-[96px] z-30 mt-5 md:bottom-4">
+          <div className="surface flex flex-wrap items-center gap-2 rounded-2xl bg-ink-900/95 p-2 sm:pl-5">
+            <span className="mr-auto hidden items-center gap-2 text-xs text-ink-400 tabular-nums sm:flex">
+              {words} {words === 1 ? "word" : "words"}
+              {words > 0 && <span className="text-ink-600">·</span>}
+              {words > 0 && `${minutes} min read`}
+              {reviewStale && (
+                <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-warn/10 px-2 py-0.5 text-warn">
+                  <span className="size-1.5 rounded-full bg-warn" /> Edited since review
+                </span>
+              )}
             </span>
-            <button onClick={runReview} disabled={!canReview} className="btn-soft flex-1 sm:flex-none" title="⌘↵">
+            <button onClick={runReview} disabled={!canReview} className="btn-soft flex-1 sm:flex-none" title="Review (⌘↵)">
               <Sparkles className="size-4 text-lamp" />
               {draft.review ? "Re-review" : "Review"}
+              <span className="kbd hidden lg:inline-grid">⌘↵</span>
             </button>
-            <button onClick={runCompose} disabled={!draft.title.trim() || !draft.understanding.trim() || !!busy} className="btn-soft flex-1 sm:flex-none">
+            <button onClick={runCompose} disabled={!canWrite} className="btn-soft flex-1 sm:flex-none">
               <Feather className="size-4 text-lamp" />
               {draft.finalNote ? "Rewrite" : <span>Write<span className="hidden sm:inline"> in my voice</span></span>}
             </button>
-            <button onClick={save} disabled={!draft.title.trim() || !draft.understanding.trim() || !!busy} className="btn-primary flex-1 sm:flex-none" title="⌘S">
+            <button onClick={save} disabled={!canWrite} className="btn-primary flex-1 sm:flex-none" title="Save (⌘S)">
               <Check className="size-4" strokeWidth={2.5} />
               Save
+              <span className="kbd hidden border-ink-950/20 bg-ink-950/10 text-ink-950/70 lg:inline-grid">⌘S</span>
             </button>
             {words < 15 && (
               <p className="w-full pb-1 text-center text-xs text-ink-400">
@@ -395,9 +421,18 @@ export function Composer() {
       </section>
 
       {/* ---------- Gemini panel ---------- */}
-      <aside className="min-w-0 xl:sticky xl:top-14 xl:max-h-[calc(100dvh-4.5rem)] xl:self-start">
+      <aside className="min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100dvh-6rem)] xl:self-start">
         <div className="card flex h-full flex-col overflow-hidden">
-          <div className="flex gap-1 border-b border-white/[0.06] p-1.5">
+          <div className="flex items-center gap-3 px-5 pt-4 pb-3">
+            <span className="grid size-8 place-items-center rounded-full bg-gradient-to-br from-lamp-bright to-lamp-deep text-ink-950 shadow-[0_0_16px_rgb(244_183_99/0.35)]">
+              <Sparkles className="size-4" strokeWidth={2.2} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink-100">Gemini coach</p>
+              <p className="text-xs text-ink-400">Reviews your understanding, then writes it your way</p>
+            </div>
+          </div>
+          <div className="mx-4 mb-1 flex gap-1 rounded-xl bg-ink-950/60 p-1 ring-1 ring-white/[0.05]">
             {(
               [
                 ["review", "Review", Sparkles],
@@ -407,15 +442,22 @@ export function Composer() {
               <button
                 key={key}
                 onClick={() => setPanel(key)}
-                className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition ${
+                className={`relative flex flex-1 items-center justify-center gap-2 rounded-lg py-1.5 text-[13px] font-medium transition ${
                   panel === key ? "text-ink-100" : "text-ink-400 hover:text-ink-200"
                 }`}
               >
                 {panel === key && (
-                  <motion.span layoutId="panel-tab" className="absolute inset-0 rounded-xl bg-white/[0.06]" />
+                  <motion.span
+                    layoutId="panel-tab"
+                    className="absolute inset-0 rounded-lg bg-white/[0.08] shadow-[inset_0_1px_0_rgb(255_255_255/0.06)]"
+                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                  />
                 )}
-                <Icon className="relative size-4" />
+                <Icon className="relative size-3.5" />
                 <span className="relative">{label}</span>
+                {key === "review" && draft.review && (
+                  <span className="relative text-[11px] text-ink-400 tabular-nums">{draft.review.overall.toFixed(1)}</span>
+                )}
               </button>
             ))}
           </div>
@@ -488,19 +530,15 @@ function FinalPanel(props: {
 
   if (!text && !streaming) {
     return (
-      <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
-        <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-lamp/10 text-lamp">
-          <Feather className="size-5" />
+      <EmptyState icon={<Feather className="size-5" />} title="Your note, in your voice">
+        Gemini rewrites your understanding the way you write — with every correction from the review folded in. Teach
+        it your voice on the <span className="text-ink-200">My voice</span> page.
+        <div className="mt-5">
+          <button onClick={props.onCompose} disabled={!props.canCompose} className="btn-primary">
+            <Feather className="size-4" /> Write in my voice
+          </button>
         </div>
-        <p className="font-medium">Your note, in your voice</p>
-        <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-ink-400">
-          Gemini rewrites your understanding the way you write — with every correction from the review folded in.
-          Teach it your voice on the <span className="text-ink-200">My voice</span> page.
-        </p>
-        <button onClick={props.onCompose} disabled={!props.canCompose} className="btn-primary mt-5">
-          <Feather className="size-4" /> Write in my voice
-        </button>
-      </div>
+      </EmptyState>
     );
   }
 

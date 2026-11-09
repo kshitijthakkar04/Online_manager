@@ -2,19 +2,20 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-ink-950: #0a0a0c;
-  --color-ink-900: #101013;
-  --color-ink-850: #15151a;
-  --color-ink-800: #1b1b21;
-  --color-ink-700: #25252d;
-  --color-ink-600: #33333d;
-  --color-ink-500: #4a4a56;
-  --color-ink-400: #6f6f7c;
-  --color-ink-300: #9b9ba8;
-  --color-ink-200: #c8c8d2;
-  --color-ink-100: #ededf2;
+  --color-ink-950: #0b0b0d;
+  --color-ink-900: #111114;
+  --color-ink-850: #16161a;
+  --color-ink-800: #1c1c21;
+  --color-ink-700: #26262c;
+  --color-ink-600: #36363e;
+  --color-ink-500: #52525c;
+  --color-ink-400: #7a7a85;
+  --color-ink-300: #a3a3ad;
+  --color-ink-200: #d0d0d7;
+  --color-ink-100: #efeff2;
 
   --color-lamp: #f4b763;
+  --color-lamp-bright: #f9cd8c;
   --color-lamp-deep: #e08a3c;
   --color-good: #74d6a5;
   --color-warn: #f2cd6a;
@@ -22,6 +23,9 @@
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
@@ -32,48 +36,75 @@ html {
 body {
   min-height: 100dvh;
   background:
-    radial-gradient(1100px 520px at 50% -180px, rgb(244 183 99 / 0.08), transparent 70%),
-    radial-gradient(700px 400px at 100% 100%, rgb(116 214 165 / 0.035), transparent 70%),
+    radial-gradient(900px 600px at 0% 0%, rgb(244 183 99 / 0.07), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgb(255 255 255 / 0.025), transparent 60%),
     var(--color-ink-950);
   background-attachment: fixed;
   color: var(--color-ink-100);
+  font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fine paper grain over everything; keeps large dark areas from looking flat. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 ::selection {
-  background: rgb(244 183 99 / 0.3);
+  background: rgb(244 183 99 / 0.28);
+  color: #fff;
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-ink-700) transparent;
+/* In the base layer so utilities (e.g. hidden scrollbars) can override them. */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-700) transparent;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(244 183 99 / 0.7);
+    outline-offset: 2px;
+  }
 }
 
+@utility surface {
+  @apply border border-white/[0.07] bg-ink-900/80 shadow-[inset_0_1px_0_rgb(255_255_255/0.035),0_1px_2px_rgb(0_0_0/0.35),0_12px_32px_-16px_rgb(0_0_0/0.6)] backdrop-blur-xl;
+}
 @utility card {
-    @apply rounded-2xl border border-white/[0.06] bg-ink-900/70 backdrop-blur-xl;
+  @apply surface rounded-2xl;
 }
 @utility btn {
-    @apply inline-flex h-9 items-center justify-center gap-2 rounded-xl px-3.5 text-sm font-medium whitespace-nowrap transition
-      disabled:pointer-events-none disabled:opacity-40 active:scale-[0.97];
+  @apply inline-flex h-9 items-center justify-center gap-2 rounded-[10px] px-3.5 text-[13px] font-medium whitespace-nowrap transition duration-150
+    select-none disabled:pointer-events-none disabled:opacity-35 active:scale-[0.98];
 }
 @utility btn-primary {
-    @apply btn bg-lamp text-ink-950 shadow-[0_0_0_1px_rgb(255_255_255/0.15)_inset,0_8px_24px_-8px_rgb(244_183_99/0.6)] hover:bg-[#f8c47c];
+  @apply btn bg-gradient-to-b from-lamp-bright to-lamp text-ink-950 shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_0_0_1px_rgb(224_138_60/0.6),0_8px_20px_-8px_rgb(244_183_99/0.55)] hover:brightness-105;
 }
 @utility btn-soft {
-    @apply btn border border-white/[0.07] bg-white/[0.04] text-ink-100 hover:bg-white/[0.08];
+  @apply btn border border-white/[0.08] bg-white/[0.04] text-ink-100 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)] hover:border-white/[0.12] hover:bg-white/[0.07];
 }
 @utility btn-ghost {
-    @apply btn text-ink-300 hover:bg-white/[0.05] hover:text-ink-100;
+  @apply btn text-ink-300 hover:bg-white/[0.05] hover:text-ink-100;
 }
 @utility field {
-    @apply w-full rounded-xl border border-white/[0.07] bg-ink-950/60 px-3 py-2 text-sm text-ink-100 outline-none
-      placeholder:text-ink-500 transition focus:border-lamp/50 focus:ring-4 focus:ring-lamp/10;
+  @apply w-full rounded-[10px] border border-white/[0.08] bg-ink-950/70 px-3 py-2 text-sm text-ink-100 outline-none
+    placeholder:text-ink-500 transition focus:border-lamp/50 focus:ring-4 focus:ring-lamp/10;
 }
 @utility eyebrow {
-    @apply text-[11px] font-semibold tracking-[0.14em] text-ink-400 uppercase;
+  @apply text-[11px] font-semibold tracking-[0.12em] text-ink-400 uppercase;
 }
 @utility chip {
-    @apply inline-flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.04] px-2.5 py-0.5 text-xs text-ink-300;
+  @apply inline-flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.035] px-2.5 py-0.5 text-xs text-ink-300;
+}
+@utility kbd {
+  @apply inline-grid h-[18px] min-w-[18px] place-items-center rounded-[5px] border border-white/[0.1] border-b-white/[0.05] bg-white/[0.05] px-1 font-sans text-[10px] font-medium text-ink-300;
 }
 
 /* Long-form reading: serif, generous leading, muted palette. */
@@ -84,7 +115,7 @@ body {
   --tw-prose-links: var(--color-lamp);
   --tw-prose-bullets: var(--color-ink-500);
   --tw-prose-counters: var(--color-ink-400);
-  --tw-prose-quotes: var(--color-ink-200);
+  --tw-prose-quotes: var(--color-ink-100);
   --tw-prose-quote-borders: var(--color-lamp);
   --tw-prose-code: var(--color-ink-100);
   --tw-prose-hr: var(--color-ink-700);
@@ -96,13 +127,28 @@ body {
 }
 .prose-diary :where(h2, h3) {
   font-family: var(--font-sans);
-  letter-spacing: -0.01em;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-top: 2em;
+}
+.prose-diary :where(blockquote) {
+  font-style: italic;
+  font-weight: 400;
+  background: linear-gradient(90deg, rgb(244 183 99 / 0.06), transparent);
+  border-radius: 0 0.75rem 0.75rem 0;
+  padding: 0.25em 1em;
+}
+.prose-diary :where(blockquote p)::before,
+.prose-diary :where(blockquote p)::after {
+  content: none;
 }
 .prose-diary :where(code):not(:where(pre *)) {
   background: rgb(255 255 255 / 0.06);
   padding: 0.1em 0.35em;
   border-radius: 0.35em;
   font-weight: 500;
+  font-size: 0.85em;
 }
 .prose-diary :where(code)::before,
 .prose-diary :where(code)::after {
@@ -153,6 +199,167 @@ body {
   50% { opacity: 0; }
 }
 
+/* ---------- Loader: "the living ledger" ---------- */
+
+.ledger {
+  --book-w: 132px;
+  --book-h: 172px;
+  position: relative;
+  width: calc(var(--book-w) * 2);
+  height: var(--book-h);
+  perspective: 1100px;
+}
+.ledger-glow {
+  position: absolute;
+  inset: -90px -60px;
+  background: radial-gradient(closest-side, rgb(244 183 99 / 0.42), rgb(244 183 99 / 0.1) 55%, transparent);
+  filter: blur(10px);
+  animation: ledger-breathe 2.6s ease-in-out infinite;
+}
+/* A cone of lamplight falling onto the book, flickering like a flame. */
+.ledger::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 40%;
+  width: 420px;
+  height: 340px;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, rgb(249 205 140 / 0), rgb(249 205 140 / 0.13) 70%, rgb(249 205 140 / 0.02));
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+  filter: blur(6px);
+  animation: ledger-flicker 3.2s steps(1) infinite, ledger-breathe 2.6s ease-in-out infinite;
+}
+@keyframes ledger-flicker {
+  0%, 100% { opacity: 1; }
+  12% { opacity: 0.82; }
+  14% { opacity: 1; }
+  58% { opacity: 0.9; }
+  61% { opacity: 1; }
+}
+.ledger-book {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(54deg) rotateZ(-8deg);
+  animation: ledger-float 5s ease-in-out infinite;
+}
+.ledger-cover,
+.ledger-page {
+  position: absolute;
+  top: 0;
+  width: var(--book-w);
+  height: var(--book-h);
+  border-radius: 4px 10px 10px 4px;
+}
+.ledger-cover {
+  background: linear-gradient(135deg, #3a2a17, #1d150c);
+  box-shadow: 0 30px 60px -10px rgb(0 0 0 / 0.8), inset 0 0 0 1px rgb(244 183 99 / 0.25);
+}
+.ledger-cover.left {
+  left: 0;
+  border-radius: 10px 4px 4px 10px;
+}
+.ledger-cover.right {
+  left: var(--book-w);
+}
+.ledger-page {
+  left: var(--book-w);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  background: linear-gradient(90deg, #e9dcc3, #f6eedd 12%, #f3e8d2);
+  box-shadow: inset 6px 0 12px -6px rgb(0 0 0 / 0.35);
+  animation: ledger-flip 2.4s var(--ease-out-expo) infinite;
+  animation-delay: calc(var(--i) * 0.3s);
+  opacity: 0;
+}
+.ledger-page::after {
+  /* Faint margin line and ruled lines so pages read as notebook paper. */
+  content: "";
+  position: absolute;
+  inset: 16px 14px 16px 22px;
+  background:
+    linear-gradient(90deg, rgb(224 138 60 / 0.5) 1px, transparent 1px) 0 0 / 100% 100% no-repeat,
+    repeating-linear-gradient(transparent 0 13px, rgb(60 50 35 / 0.18) 13px 14px);
+}
+.ledger-page.static {
+  animation: none;
+  opacity: 1;
+}
+.ledger-page.left-stack {
+  left: 0;
+  transform: none;
+  background: linear-gradient(270deg, #e9dcc3, #f6eedd 12%, #f3e8d2);
+  box-shadow: inset -6px 0 12px -6px rgb(0 0 0 / 0.35);
+}
+.ledger-ink {
+  position: absolute;
+  inset: 28px 20px 0 30px;
+  width: calc(100% - 50px);
+  height: 60%;
+  backface-visibility: hidden;
+}
+.ledger-ink path {
+  fill: none;
+  stroke: #3b2c1a;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: ledger-write 2.4s ease-in-out infinite;
+}
+.ledger-glyph {
+  position: absolute;
+  left: 50%;
+  bottom: 45%;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--color-lamp-bright);
+  text-shadow: 0 0 12px rgb(244 183 99 / 0.9);
+  opacity: 0;
+  animation: ledger-rise var(--dur, 3.2s) ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+.ledger-wave {
+  animation: ledger-cell 2.2s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+/* Pages fade in on top of the right page and out on top of the left one,
+   so the jump back to the start of the loop is never visible. */
+@keyframes ledger-flip {
+  0% { transform: translateZ(calc(2px + var(--i) * 0.5px)) rotateY(0deg); opacity: 0; }
+  6% { opacity: 1; }
+  10% { transform: translateZ(calc(2px + var(--i) * 0.5px)) rotateY(0deg); }
+  60% { transform: translateZ(calc(2px + var(--i) * 0.5px)) rotateY(-178deg); }
+  92% { opacity: 1; }
+  100% { transform: translateZ(calc(2px + var(--i) * 0.5px)) rotateY(-178deg); opacity: 0; }
+}
+@keyframes ledger-write {
+  0%, 10% { stroke-dashoffset: 120; }
+  45%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes ledger-breathe {
+  0%, 100% { opacity: 0.65; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+@keyframes ledger-float {
+  0%, 100% { transform: rotateX(54deg) rotateZ(-8deg) translateZ(0); }
+  50% { transform: rotateX(50deg) rotateZ(-6deg) translateZ(14px); }
+}
+@keyframes ledger-rise {
+  0% { opacity: 0; transform: translate(-50%, 0) rotate(0deg) scale(0.6); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), -190px) rotate(var(--rot, 20deg)) scale(1.15); }
+}
+@keyframes ledger-cell {
+  0%, 100% { background: rgb(255 255 255 / 0.04); }
+  45% { background: rgb(244 183 99 / 0.55); box-shadow: 0 0 10px rgb(244 183 99 / 0.45); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .shimmer-text, .caret::after { animation: none; }
+  .shimmer-text, .caret::after, .ledger::before, .ledger-glow, .ledger-book, .ledger-page, .ledger-ink path, .ledger-glyph, .ledger-wave {
+    animation: none !important;
+  }
+  .ledger-ink path { stroke-dashoffset: 0; }
 }

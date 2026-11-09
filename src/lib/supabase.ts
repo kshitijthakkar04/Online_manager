@@ -33,8 +33,17 @@ function check<T>({ data, error, status }: { data: T; error: DbError | null; sta
   return data;
 }
 
+/** Markdown → a short plain-text preview (no headings, list markers, emphasis or [n] citations). */
 function excerpt(text: string, len = 220) {
-  const plain = text.replace(/[#>*_`\[\]()-]/g, "").replace(/\s+/g, " ").trim();
+  const plain = text
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/^\s{0,3}(#{1,6}\s.*|>\s?)/gm, (m) => (m.startsWith(">") ? "" : " "))
+    .replace(/^\s*([-*+]|\d+\.)\s+/gm, "")
+    .replace(/\s*\[(\d+)\]/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_`~]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
   return plain.length > len ? plain.slice(0, len).trimEnd() + "…" : plain;
 }
 
