@@ -1,0 +1,158 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-ink-950: #0a0a0c;
+  --color-ink-900: #101013;
+  --color-ink-850: #15151a;
+  --color-ink-800: #1b1b21;
+  --color-ink-700: #25252d;
+  --color-ink-600: #33333d;
+  --color-ink-500: #4a4a56;
+  --color-ink-400: #6f6f7c;
+  --color-ink-300: #9b9ba8;
+  --color-ink-200: #c8c8d2;
+  --color-ink-100: #ededf2;
+
+  --color-lamp: #f4b763;
+  --color-lamp-deep: #e08a3c;
+  --color-good: #74d6a5;
+  --color-warn: #f2cd6a;
+  --color-bad: #ff8573;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+}
+
+html {
+  color-scheme: dark;
+  background: var(--color-ink-950);
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(1100px 520px at 50% -180px, rgb(244 183 99 / 0.08), transparent 70%),
+    radial-gradient(700px 400px at 100% 100%, rgb(116 214 165 / 0.035), transparent 70%),
+    var(--color-ink-950);
+  background-attachment: fixed;
+  color: var(--color-ink-100);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgb(244 183 99 / 0.3);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-700) transparent;
+}
+
+@utility card {
+    @apply rounded-2xl border border-white/[0.06] bg-ink-900/70 backdrop-blur-xl;
+}
+@utility btn {
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-xl px-3.5 text-sm font-medium whitespace-nowrap transition
+      disabled:pointer-events-none disabled:opacity-40 active:scale-[0.97];
+}
+@utility btn-primary {
+    @apply btn bg-lamp text-ink-950 shadow-[0_0_0_1px_rgb(255_255_255/0.15)_inset,0_8px_24px_-8px_rgb(244_183_99/0.6)] hover:bg-[#f8c47c];
+}
+@utility btn-soft {
+    @apply btn border border-white/[0.07] bg-white/[0.04] text-ink-100 hover:bg-white/[0.08];
+}
+@utility btn-ghost {
+    @apply btn text-ink-300 hover:bg-white/[0.05] hover:text-ink-100;
+}
+@utility field {
+    @apply w-full rounded-xl border border-white/[0.07] bg-ink-950/60 px-3 py-2 text-sm text-ink-100 outline-none
+      placeholder:text-ink-500 transition focus:border-lamp/50 focus:ring-4 focus:ring-lamp/10;
+}
+@utility eyebrow {
+    @apply text-[11px] font-semibold tracking-[0.14em] text-ink-400 uppercase;
+}
+@utility chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.04] px-2.5 py-0.5 text-xs text-ink-300;
+}
+
+/* Long-form reading: serif, generous leading, muted palette. */
+.prose-diary {
+  --tw-prose-body: var(--color-ink-200);
+  --tw-prose-headings: var(--color-ink-100);
+  --tw-prose-bold: var(--color-ink-100);
+  --tw-prose-links: var(--color-lamp);
+  --tw-prose-bullets: var(--color-ink-500);
+  --tw-prose-counters: var(--color-ink-400);
+  --tw-prose-quotes: var(--color-ink-200);
+  --tw-prose-quote-borders: var(--color-lamp);
+  --tw-prose-code: var(--color-ink-100);
+  --tw-prose-hr: var(--color-ink-700);
+  --tw-prose-th-borders: var(--color-ink-600);
+  --tw-prose-td-borders: var(--color-ink-700);
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+.prose-diary :where(h2, h3) {
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+}
+.prose-diary :where(code):not(:where(pre *)) {
+  background: rgb(255 255 255 / 0.06);
+  padding: 0.1em 0.35em;
+  border-radius: 0.35em;
+  font-weight: 500;
+}
+.prose-diary :where(code)::before,
+.prose-diary :where(code)::after {
+  content: none;
+}
+
+/* The notch's concave "ears" where it meets the top edge of the screen. */
+.notch-ear {
+  position: absolute;
+  top: 0;
+  width: 14px;
+  height: 14px;
+}
+.notch-ear.left {
+  left: -14px;
+  background: radial-gradient(circle at 0 100%, transparent 13.5px, #000 14px);
+}
+.notch-ear.right {
+  right: -14px;
+  background: radial-gradient(circle at 100% 100%, transparent 13.5px, #000 14px);
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, var(--color-ink-300) 0%, #fff 50%, var(--color-ink-300) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--color-lamp);
+  border-radius: 2px;
+  animation: blink 1s steps(2) infinite;
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-text, .caret::after { animation: none; }
+}

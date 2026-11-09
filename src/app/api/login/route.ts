@@ -1,0 +1,19 @@
+import { cookies } from "next/headers";
+import { SESSION_COOKIE, sessionToken } from "@/lib/auth";
+
+export async function POST(req: Request) {
+  const { password } = (await req.json()) as { password?: string };
+  const expected = process.env.APP_PASSWORD;
+  if (!expected || !password || (await sessionToken(password)) !== (await sessionToken(expected))) {
+    await new Promise((r) => setTimeout(r, 600));
+    return Response.json({ error: "Wrong passcode" }, { status: 401 });
+  }
+  (await cookies()).set(SESSION_COOKIE, await sessionToken(), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 90,
+  });
+  return Response.json({ ok: true });
+}
